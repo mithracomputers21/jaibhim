@@ -137,6 +137,18 @@
                     </tr>
                     <tr>
                         <th>
+                            {{ trans('cruds.member.fields.receipt_photo') }}
+                        </th>
+                        <td>
+                            @foreach($member->receipt_photo as $key => $media)
+                                <a href="{{ $media->getUrl() }}" target="_blank">
+                                    {{ trans('global.view_file') }}
+                                </a>
+                            @endforeach
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
                             {{ trans('cruds.member.fields.remarks') }}
                         </th>
                         <td>

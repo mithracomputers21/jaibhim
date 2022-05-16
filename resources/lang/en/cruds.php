@@ -151,6 +151,8 @@ return [
             'type_helper'             => ' ',
             'category'                => 'தனி நபர் / ஜெய்பீம் 2.0',
             'category_helper'         => ' ',
+            'receipt_photo'           => 'Receipt Photo',
+            'receipt_photo_helper'    => ' ',
         ],
     ],
     'panchayat' => [
