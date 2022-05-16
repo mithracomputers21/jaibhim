@@ -67,6 +67,9 @@
                         {{ trans('cruds.member.fields.amount') }}
                     </th>
                     <th>
+                        {{ trans('cruds.member.fields.receipt_photo') }}
+                    </th>
+                    <th>
                         {{ trans('cruds.member.fields.remarks') }}
                     </th>
                     <th>
@@ -151,6 +154,8 @@
                         <input class="search" type="text" placeholder="{{ trans('global.search') }}">
                     </td>
                     <td>
+                    </td>
+                    <td>
                         <input class="search" type="text" placeholder="{{ trans('global.search') }}">
                     </td>
                     <td>
@@ -223,6 +228,7 @@
 { data: 'payment_method', name: 'payment_method' },
 { data: 'payment_date', name: 'payment_date' },
 { data: 'amount', name: 'amount' },
+{ data: 'receipt_photo', name: 'receipt_photo', sortable: false, searchable: false },
 { data: 'remarks', name: 'remarks' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],

@@ -47,6 +47,13 @@ class UpdateMemberRequest extends FormRequest
                 'string',
                 'required',
             ],
+            'receipt_photo' => [
+                'array',
+                'required',
+            ],
+            'receipt_photo.*' => [
+                'required',
+            ],
             'remarks' => [
                 'string',
                 'nullable',

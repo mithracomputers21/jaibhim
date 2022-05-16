@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\MediaUploadingTrait;
 use App\Http\Requests\MassDestroyMemberRequest;
 use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
@@ -12,11 +13,14 @@ use App\Models\Member;
 use App\Models\Panchayat;
 use Gate;
 use Illuminate\Http\Request;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
 
 class MemberController extends Controller
 {
+    use MediaUploadingTrait;
+
     public function index(Request $request)
     {
         abort_if(Gate::denies('member_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -89,11 +93,22 @@ class MemberController extends Controller
             $table->editColumn('amount', function ($row) {
                 return $row->amount ? $row->amount : '';
             });
+            $table->editColumn('receipt_photo', function ($row) {
+                if (!$row->receipt_photo) {
+                    return '';
+                }
+                $links = [];
+                foreach ($row->receipt_photo as $media) {
+                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+                }
+
+                return implode(', ', $links);
+            });
             $table->editColumn('remarks', function ($row) {
                 return $row->remarks ? $row->remarks : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'district', 'block', 'panchayat']);
+            $table->rawColumns(['actions', 'placeholder', 'district', 'block', 'panchayat', 'receipt_photo']);
 
             return $table->make(true);
         }
@@ -122,6 +137,14 @@ class MemberController extends Controller
     {
         $member = Member::create($request->all());
 
+        foreach ($request->input('receipt_photo', []) as $file) {
+            $member->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('receipt_photo');
+        }
+
+        if ($media = $request->input('ck-media', false)) {
+            Media::whereIn('id', $media)->update(['model_id' => $member->id]);
+        }
+
         return redirect()->route('admin.members.index');
     }
 
@@ -143,6 +166,20 @@ class MemberController extends Controller
     public function update(UpdateMemberRequest $request, Member $member)
     {
         $member->update($request->all());
+
+        if (count($member->receipt_photo) > 0) {
+            foreach ($member->receipt_photo as $media) {
+                if (!in_array($media->file_name, $request->input('receipt_photo', []))) {
+                    $media->delete();
+                }
+            }
+        }
+        $media = $member->receipt_photo->pluck('file_name')->toArray();
+        foreach ($request->input('receipt_photo', []) as $file) {
+            if (count($media) === 0 || !in_array($file, $media)) {
+                $member->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('receipt_photo');
+            }
+        }
 
         return redirect()->route('admin.members.index');
     }
@@ -170,5 +207,17 @@ class MemberController extends Controller
         Member::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function storeCKEditorImages(Request $request)
+    {
+        abort_if(Gate::denies('member_create') && Gate::denies('member_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $model         = new Member();
+        $model->id     = $request->input('crud_id', 0);
+        $model->exists = true;
+        $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
+
+        return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
     }
 }

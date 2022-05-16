@@ -36,6 +36,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
 
     // Member
     Route::delete('members/destroy', 'MemberController@massDestroy')->name('members.massDestroy');
+    Route::post('members/media', 'MemberController@storeMedia')->name('members.storeMedia');
+    Route::post('members/ckmedia', 'MemberController@storeCKEditorImages')->name('members.storeCKEditorImages');
     Route::resource('members', 'MemberController');
 
     // Panchayat
